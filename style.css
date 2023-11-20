@@ -1,0 +1,86 @@
+@font-face {
+  font-family: "Press Start 2P";
+  src: url('./fonts/Press_Start_2P/PressStart2P-Regular.ttf');
+}
+* {
+  box-sizing: border-box;
+}
+.canvas-container {
+  position: relative;
+  display: inline-block;
+}
+.canvas-container .health-container {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 20px;
+}
+.canvas-container .health-container .player-health-container {
+  position: relative;
+  width: 100%;
+  height: 30px;
+  display: flex;
+  border: 4px solid #fff;
+  border-right: 0;
+  box-sizing: content-box;
+}
+#playerHealth {
+  background-color: #818CF8;
+  width: 100%;
+  height: inherit;
+  position: absolute;
+  right: 0;
+}
+#playerIndicator {
+  background-color: red;
+  width: 300%;
+  height: inherit;
+}
+.canvas-container .health-container .enemy-health-container {
+  position: relative;
+  width: 100%;
+  height: 30px;
+  display: flex;
+  border: 4px solid #fff;
+  border-left: 0;
+  box-sizing: content-box;
+}
+#enemyHealth {
+  background-color: #818CF8;
+  width: 100%;
+  height: inherit;
+  position: absolute;
+  left: 0;
+}
+#enemyIndicator {
+  background-color: red;
+  width: 300%;
+  height: inherit;
+}
+.canvas-container .game-results {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden;
+}
+.canvas-container .health-container .timer {
+  background-color: #000;
+  width: 100px;
+  height: 50px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5em;
+  font-family: "Press Start 2P", Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  color: #fff;
+  border: 4px solid #fff;
+  box-sizing: content-box;
+}
