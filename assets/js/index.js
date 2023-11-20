@@ -32,7 +32,7 @@ const shop = new Sprite({
 
 const player = new Fighter({
   position: {
-    x: 0,
+    x: 200,
     y: 10
   },
   velocity: {
@@ -88,7 +88,7 @@ const player = new Fighter({
 
 const enemy = new Fighter({
   position: {
-    x: 400,
+    x: 780,
     y: 100
   },
   velocity: {
@@ -268,6 +268,7 @@ function decreaseTime() {
     }
     document.querySelector('#timer').innerHTML = `${timer}`;
 
+    // end game based on timer
     if (timer === 0) {
       determineWinner({ player, enemy, timerId });
     }

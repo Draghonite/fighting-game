@@ -14,6 +14,28 @@ const HEALTH_HIT_AMOUNT = {
   FATALITY: 100
 };
 
+const GAME_STATE = {
+  GAME_STARTING: 'Starting...',
+  GAME_OVER: 'Game Over'
+};
+
+function setGameState(state, winner) {
+  const gameResults = document.querySelector('.game-results');
+  const gameState = gameResults.querySelector('.game-state');
+  const gameOutcome = gameResults.querySelector('#gameOutcome');
+  switch(state) {
+    case GAME_STATE.GAME_STARTING:
+      gameState.innerHTML = GAME_STATE.GAME_STARTING;
+      gameOutcome.innerHTML = timer;
+      break;
+    case GAME_STATE.GAME_OVER:
+      gameState.innerHTML = GAME_STATE.GAME_OVER;
+      gameOutcome.innerHTML = winner;
+      break;
+  }
+  gameResults.style.visibility = 'visible';
+}
+
 function rectanglesCollide({ rectangle1, rectangle2 }) {
   return (
     rectangle1.isAttacking &&
@@ -26,13 +48,35 @@ function rectanglesCollide({ rectangle1, rectangle2 }) {
 
 function determineWinner({ player, enemy, timerId }) {
   clearInterval(timerId);
-  let gameResults = document.querySelector('#gameResults');
+  let winner = 'TIED!!';
   if (player.health === enemy.health) {
-    gameResults.innerHTML = 'TIED!!';
+    winner = 'TIED!!';
   } else if (player.health > enemy.health) {
-    gameResults.innerHTML = 'PLAYER 1 WINS!!';
+    winner = 'PLAYER 1 WINS!!';
   } else {
-    gameResults.innerHTML = 'PLAYER 2 WINS!!';
+    winner = 'PLAYER 2 WINS!!';
   }
-  gameResults.style.visibility = 'visible';
+  setGameState(GAME_STATE.GAME_OVER, winner);
+}
+
+function setPlayerReady(ele, playerNumber) {
+  ele.innerHTML = 'Ready';
+  switch(playerNumber) {
+    case 1:
+      player.isReady = true;
+      break;
+    case 2:
+      enemy.isReady = true;
+      break;
+  }
+  if (player.isReady && enemy.isReady) {
+    timer = 5;
+    setInterval(() => {
+      timer--;
+      setGameState(GAME_STATE.GAME_STARTING);
+      if (timer <= 0) {
+        location.reload();
+      }
+    }, 1000);
+  }
 }

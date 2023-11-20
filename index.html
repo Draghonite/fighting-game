@@ -25,7 +25,12 @@
       </div>
     </div>
     <div id="gameResults" class="game-results">
-      Tie
+      <div class="game-state">Game Over</div>
+      <div id="gameOutcome"></div>
+      <div id="nextGame">
+        <div>Player 1: <span id="player1Ready" onclick="setPlayerReady(this, 1)">Not Ready</span></div>
+        <div>Player 2: <span id="player2Ready" onclick="setPlayerReady(this, 2)">Not Ready</span></div>
+      </div>
     </div>
     <canvas></canvas>
   </div>
