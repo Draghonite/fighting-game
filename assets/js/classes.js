@@ -89,6 +89,7 @@ class Fighter extends Sprite {
       sprites[sprite].image.src = sprites[sprite].imageSrc;
     }
     this.isDead = false;
+    this.isJumping = false;
   }
 
   update() {
@@ -111,8 +112,10 @@ class Fighter extends Sprite {
     if (this.position.y + this.height + this.velocity.y >= canvas.height - 96) {
       this.velocity.y = 0;
       this.position.y = 330;
+      this.isJumping = false;
     } else {
       this.velocity.y += GRAVITY;
+      this.isJumping = true;
     }
   }
 

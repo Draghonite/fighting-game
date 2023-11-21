@@ -15,25 +15,35 @@ const HEALTH_HIT_AMOUNT = {
 };
 
 const GAME_STATE = {
+  IDLE: 'idle',
   GAME_STARTING: 'Starting...',
+  RUNNING: 'running',
   GAME_OVER: 'Game Over'
 };
 
 function setGameState(state, winner) {
-  const gameResults = document.querySelector('.game-results');
-  const gameState = gameResults.querySelector('.game-state');
-  const gameOutcome = gameResults.querySelector('#gameOutcome');
+  gameState = state;
+  const gameResultsElement = document.querySelector('.game-results');
+  const gameStateElement = gameResultsElement.querySelector('.game-state');
+  const gameOutcomeElement = gameResultsElement.querySelector('#gameOutcome');
+  const nextGameElement = gameResultsElement.querySelector('#nextGame');
   switch(state) {
     case GAME_STATE.GAME_STARTING:
-      gameState.innerHTML = GAME_STATE.GAME_STARTING;
-      gameOutcome.innerHTML = timer;
+      if (timer >= 2) {
+        gameStateElement.innerHTML = GAME_STATE.GAME_STARTING;
+      } else {
+        gameStateElement.innerHTML = 'Fight!';
+      }
+      gameOutcomeElement.innerHTML = timer;
+      gameResultsElement.style.visibility = 'visible';
       break;
     case GAME_STATE.GAME_OVER:
-      gameState.innerHTML = GAME_STATE.GAME_OVER;
-      gameOutcome.innerHTML = winner;
+      gameStateElement.innerHTML = GAME_STATE.GAME_OVER;
+      gameOutcomeElement.innerHTML = winner;
+      gameResultsElement.style.visibility = 'visible';
+      nextGameElement.style.visibility = 'visible';
       break;
   }
-  gameResults.style.visibility = 'visible';
 }
 
 function rectanglesCollide({ rectangle1, rectangle2 }) {

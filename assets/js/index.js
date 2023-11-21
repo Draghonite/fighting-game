@@ -8,7 +8,8 @@ c.fillRect(0, 0, canvas.width, canvas.height);
 
 const GRAVITY = 0.7;
 const MOVEMENT_SPEED = 5;
-const JUMP_SPEED = 20;
+const JUMP_SPEED = 19;
+let gameState = GAME_STATE.IDLE;
 
 // #region Instantiation
 
@@ -174,11 +175,15 @@ function animate() {
 
   // player movement
   if (keys.a.pressed && player.lastKey === 'a') {
-    player.velocity.x = -MOVEMENT_SPEED;
-    player.switchSprite(CHARACTER_STATE.RUN);
+    if (player.position.x > 0) {
+      player.velocity.x = -MOVEMENT_SPEED;
+      player.switchSprite(CHARACTER_STATE.RUN);
+    }
   } else if (keys.d.pressed && player.lastKey === 'd') {
-    player.velocity.x = MOVEMENT_SPEED;
-    player.switchSprite(CHARACTER_STATE.RUN);
+    if (player.position.x < canvas.width - player.width) {
+      player.velocity.x = MOVEMENT_SPEED;
+      player.switchSprite(CHARACTER_STATE.RUN);
+    }
   } else {
     player.switchSprite(CHARACTER_STATE.IDLE);
   }
@@ -191,11 +196,15 @@ function animate() {
 
   // enemy movement
   if (keys.ArrowLeft.pressed && enemy.lastKey === 'ArrowLeft') {
-    enemy.velocity.x = -MOVEMENT_SPEED;
-    enemy.switchSprite(CHARACTER_STATE.RUN);
+    if (enemy.position.x > 0) {
+      enemy.velocity.x = -MOVEMENT_SPEED;
+      enemy.switchSprite(CHARACTER_STATE.RUN);
+    }
   } else if (keys.ArrowRight.pressed && enemy.lastKey === 'ArrowRight') {
-    enemy.velocity.x = MOVEMENT_SPEED;
-    enemy.switchSprite(CHARACTER_STATE.RUN);
+    if (enemy.position.x < canvas.width - enemy.width) {
+      enemy.velocity.x = MOVEMENT_SPEED;
+      enemy.switchSprite(CHARACTER_STATE.RUN);
+    }
   } else {
     enemy.switchSprite(CHARACTER_STATE.IDLE);
   }
@@ -265,6 +274,9 @@ function decreaseTime() {
   timerId = setInterval(() => {
     if (timer > 0) {
       timer--;
+      if (gameState !== GAME_STATE.RUNNING) {
+        setGameState(GAME_STATE.RUNNING);
+      }
     }
     document.querySelector('#timer').innerHTML = `${timer}`;
 
@@ -281,8 +293,7 @@ decreaseTime();
 // #region Events
 
 window.addEventListener('keydown', (event) => {
-  // if neither character is dead
-  if (![player.isDead, enemy.isDead].some(x => x)) {
+  if (gameState === GAME_STATE.RUNNING) {
     switch(event.key) {
       // player
       case 'd':
@@ -294,7 +305,9 @@ window.addEventListener('keydown', (event) => {
         player.lastKey = event.key;
         break;
       case 'w':
-        player.velocity.y = -JUMP_SPEED;
+        if (!player.isJumping) {
+          player.velocity.y = -JUMP_SPEED;
+        }
         break;
       case ' ':
         player.attack();
@@ -309,7 +322,9 @@ window.addEventListener('keydown', (event) => {
         enemy.lastKey = event.key;
         break;
       case 'ArrowUp':
-        enemy.velocity.y = -JUMP_SPEED;
+        if (!enemy.isJumping) {
+          enemy.velocity.y = -JUMP_SPEED;
+        }
         break;
       case 'ArrowDown':
         enemy.attack();
