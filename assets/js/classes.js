@@ -55,7 +55,8 @@ class Fighter extends Sprite {
     framesMax = 1, 
     offset = { x: 0, y: 0 },
     sprites,
-    attackBox = { offset: {}, width: undefined, height: undefined }
+    attackBox = { offset: {}, offsetFlipped: {}, width: undefined, height: undefined },
+    defaultOrientation
   }) {
     super({
       position,
@@ -74,6 +75,7 @@ class Fighter extends Sprite {
         y: this.position.y
       },
       offset: attackBox.offset,
+      offsetFlipped: attackBox.offsetFlipped,
       width: attackBox.width,
       height: attackBox.height
     };
@@ -87,9 +89,14 @@ class Fighter extends Sprite {
     for (const sprite in this.sprites) {
       sprites[sprite].image = new Image();
       sprites[sprite].image.src = sprites[sprite].imageSrc;
+      sprites[sprite].imageFlipped = new Image();
+      sprites[sprite].imageFlipped.src = sprites[sprite].imageSrcFlipped;
     }
     this.isDead = false;
     this.isJumping = false;
+    this.defaultOrientation = defaultOrientation;
+    this.currentOrientation = defaultOrientation;
+    this.isFlipped = false;
   }
 
   update() {
@@ -99,8 +106,8 @@ class Fighter extends Sprite {
     }
 
     // attack boxes
-    this.attackBox.position.x = this.position.x + this.attackBox.offset.x;
-    this.attackBox.position.y = this.position.y + this.attackBox.offset.y;
+    this.attackBox.position.x = this.position.x + (this.isFlipped ? this.attackBox.offsetFlipped.x : this.attackBox.offset.x);
+    this.attackBox.position.y = this.position.y + (this.isFlipped ? this.attackBox.offsetFlipped.y : this.attackBox.offset.y);
 
     // draw attack boxes -- dev/troubleshoting
     // c.fillRect(this.attackBox.position.x, this.attackBox.position.y, this.attackBox.width, this.attackBox.height);
@@ -119,69 +126,77 @@ class Fighter extends Sprite {
     }
   }
 
+  setOrientation(orientation) {
+    this.currentOrientation = orientation;
+    this.isFlipped = (this.currentOrientation !== this.defaultOrientation);
+  }
+
   attack() {
-    this.switchSprite(CHARACTER_STATE.ATTACK_1);
+    this.switchSprite(CHARACTER_STATE.ATTACK_1, this.isFlipped);
     this.isAttacking = true;
   }
 
-  switchSprite(sprite) {
+  switchSprite(sprite, isFlipped = false) {
+    // decide if using image or imageFlipped
+    const imageProperty = isFlipped ? 'imageFlipped' : 'image';
     // override all other animations when dead
-    if (this.image === this.sprites.death.image) {
+    if (this.image === this.sprites.death[imageProperty]) {
       if (this.framesCurrent === this.sprites.death.framesMax - 1) {
         this.isDead = true;
       }
       return; 
     }
     // override all other animations when attacking
-    if (this.image === this.sprites.attack1.image && this.framesCurrent < this.sprites.attack1.framesMax - 1) { return; }
+    if (this.image === this.sprites.attack1[imageProperty] && this.framesCurrent < this.sprites.attack1.framesMax - 1) { return; }
     // override all other animations when taking hit
-    if (this.image === this.sprites.takeHit.image && this.framesCurrent < this.sprites.takeHit.framesMax - 1) { return; }
+    if (this.image === this.sprites.takeHit[imageProperty] && this.framesCurrent < this.sprites.takeHit.framesMax - 1) { return; }
     switch(sprite) {
       case CHARACTER_STATE.IDLE:
-        if (this.image !== this.sprites.idle.image) {
-          this.image = this.sprites.idle.image;
+        if (this.image !== this.sprites.idle[imageProperty]) {
+          this.image = this.sprites.idle[imageProperty];
           this.framesMax = this.sprites.idle.framesMax;
           this.framesCurrent = 0;
         }
         break;
       case CHARACTER_STATE.RUN:
-        if (this.image !== this.sprites.run.image) {
-          this.image = this.sprites.run.image;
+        if (this.image !== this.sprites.run[imageProperty]) {
+          this.image = this.sprites.run[imageProperty];
           this.framesMax = this.sprites.run.framesMax;
           this.framesCurrent = 0;
         }
         break;
       case CHARACTER_STATE.JUMP: 
-        if (this.image !== this.sprites.jump.image) {
-          this.image = this.sprites.jump.image;
+        if (this.image !== this.sprites.jump[imageProperty]) {
+          this.image = this.sprites.jump[imageProperty];
           this.framesMax = this.sprites.jump.framesMax;
           this.framesCurrent = 0;
         }
         break;
       case CHARACTER_STATE.FALL: 
-        if (this.image !== this.sprites.fall.image) {
-          this.image = this.sprites.fall.image;
+        if (this.image !== this.sprites.fall[imageProperty]) {
+          this.image = this.sprites.fall[imageProperty];
           this.framesMax = this.sprites.fall.framesMax;
           this.framesCurrent = 0;
         }
         break;
       case CHARACTER_STATE.ATTACK_1: 
-        if (this.image !== this.sprites.attack1.image) {
-          this.image = this.sprites.attack1.image;
+        if (this.image !== this.sprites.attack1[imageProperty]) {
+          this.image = this.sprites.attack1[imageProperty];
           this.framesMax = this.sprites.attack1.framesMax;
           this.framesCurrent = 0;
         }
         break;
       case CHARACTER_STATE.TAKE_HIT: 
-        if (this.image !== this.sprites.takeHit.image) {
-          this.image = this.sprites.takeHit.image;
+        if (this.image !== this.sprites.takeHit[imageProperty]) {
+          this.image = this.sprites.takeHit[imageProperty];
           this.framesMax = this.sprites.takeHit.framesMax;
           this.framesCurrent = 0;
         }
         break;
-      case CHARACTER_STATE.DEATH: 
-        if (this.image !== this.sprites.death.image) {
-          this.image = this.sprites.death.image;
+      case CHARACTER_STATE.DEATH:
+        // TODO: when flipped, death sequence is off -- reverse the order and the final frame (x -> 0)
+        if (this.image !== this.sprites.death[imageProperty]) {
+          this.image = this.sprites.death[imageProperty];
           this.framesMax = this.sprites.death.framesMax;
           this.framesCurrent = 0;
         }
@@ -193,9 +208,9 @@ class Fighter extends Sprite {
     this.health -= healthHit;
     if (updateHealth) { updateHealth(); }
     if (this.health <= 0) {
-      this.switchSprite(CHARACTER_STATE.DEATH);
+      this.switchSprite(CHARACTER_STATE.DEATH, this.isFlipped);
     } else {
-      this.switchSprite(CHARACTER_STATE.TAKE_HIT);
+      this.switchSprite(CHARACTER_STATE.TAKE_HIT, this.isFlipped);
     }
   }
 }

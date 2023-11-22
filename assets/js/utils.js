@@ -1,3 +1,8 @@
+const ORIENTATION = {
+  LEFT: 'left',
+  RIGHT: 'right'
+};
+
 const CHARACTER_STATE = {
   IDLE: 'idle',
   RUN: 'run',
@@ -67,6 +72,16 @@ function determineWinner({ player, enemy, timerId }) {
     winner = 'PLAYER 2 WINS!!';
   }
   setGameState(GAME_STATE.GAME_OVER, winner);
+}
+
+function updateOrientation({ player, enemy }) {
+  if (player.position.x < enemy.position.x) {
+    player.setOrientation(ORIENTATION.RIGHT);
+    enemy.setOrientation(ORIENTATION.LEFT);
+  } else {
+    player.setOrientation(ORIENTATION.LEFT);
+    enemy.setOrientation(ORIENTATION.RIGHT);
+  }
 }
 
 function setPlayerReady(ele, playerNumber) {
