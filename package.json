@@ -1,0 +1,15 @@
+{
+  "name": "js-fighting-game",
+  "version": "1.0.0",
+  "description": "This is a fighting built in Javascript, extends original work from a YouTube tutorial (see Acknowledgements).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^8.14.2"
+  }
+}

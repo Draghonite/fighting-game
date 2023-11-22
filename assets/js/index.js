@@ -317,10 +317,11 @@ function decreaseTime() {
 
 animate();
 decreaseTime();
+attachScreenWebSocket();
 
 // #region Events
 
-window.addEventListener('keydown', (event) => {
+function startAction(event) {
   if (gameState === GAME_STATE.RUNNING) {
     switch(event.key) {
       // player
@@ -359,9 +360,9 @@ window.addEventListener('keydown', (event) => {
         break;
     }
   }
-});
+}
 
-window.addEventListener('keyup', (event) => {
+function stopAction(event) {
   switch(event.key) {
     // player
     case 'd':
@@ -383,6 +384,14 @@ window.addEventListener('keyup', (event) => {
       keys.ArrowUp.pressed = false;
       break;
   }
+}
+
+window.addEventListener('keydown', (event) => {
+  startAction(event);
+});
+
+window.addEventListener('keyup', (event) => {
+  stopAction(event);
 });
 
 // #endregion

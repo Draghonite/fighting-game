@@ -1,3 +1,8 @@
+const PLAYER = {
+  ONE: null,
+  TWO: null
+};
+
 const ORIENTATION = {
   LEFT: 'left',
   RIGHT: 'right'
@@ -25,6 +30,71 @@ const GAME_STATE = {
   RUNNING: 'running',
   GAME_OVER: 'Game Over'
 };
+
+function routeActionEvent(request) {
+  const EVENT_MAP = {
+    [PLAYER.ONE]: {
+      right: 'd',
+      left: 'a',
+      up: 'w',
+      attack: ' '
+    },
+    [PLAYER.TWO]: {
+      right: 'ArrowRight',
+      left: 'ArrowLeft',
+      up: 'ArrowUp',
+      attack: ' '
+    }
+  };
+  let action = request.action.split('=');
+  console.log('[screen.routeActionEvent]: ', request, action);
+
+  if (action[1]) {
+    let event = { key: EVENT_MAP[request.clientId][action[1]] };
+    startAction(event);
+    setTimeout(() => {
+      stopAction(event);
+    }, 500);
+  } else {
+    let event = { key: EVENT_MAP[request.clientId][action[0]] };
+    startAction(event);
+    setTimeout(() => {
+      stopAction(event);
+    }, 500);
+  }
+}
+
+function attachScreenWebSocket() {
+  const ws = new WebSocket('ws://localhost:8082');
+
+  ws.addEventListener('open', (client) => {
+    
+  });
+
+  ws.onmessage = (e) => {
+    const message = JSON.parse(e.data); // compromising on performance over resilience (error-handling)
+    if (!message) { return; }
+
+    // ensure that player 1 and player 2 are setup -- should be more robust
+    if (!PLAYER.ONE && PLAYER.ONE !== message.clientId) {
+      PLAYER.ONE = message.clientId;
+      console.log('[screen]: Player 1 connected!');
+    } else if (!PLAYER.TWO && PLAYER.TWO !== message.clientId && PLAYER.ONE !== message.clientId) {
+      PLAYER.TWO = message.clientId;
+      console.log('[screen]: Player 2 connected!');
+    }
+
+    console.log('[screen]: FROM-SERVER: ', message, PLAYER);
+
+    routeActionEvent(message);
+  };
+
+  ws.onclose = (socket, e) => {
+    // TODO: clean up clients list -- same client should be able to reload and reconnect
+    console.log('[screen]: A player left.');
+    // TODO: what happens if player exits mid-game -- if 1 player left, automatic winner?
+  }
+}
 
 function setGameState(state, winner) {
   gameState = state;

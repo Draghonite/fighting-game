@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player Controls</title>
+  <style>
+    body {
+      width: 670px;
+      height: 150px;
+    }
+    .game-control {
+      display: flex;
+      gap: 20px;
+      margin: auto;
+      justify-content: space-around;
+      border: 2px solid #000;
+      padding: 35px;
+    }
+    .game-control .d-pad {
+      display: flex;
+      gap: 10px;
+      flex-direction: column;
+    }
+    .game-control .d-pads {
+      display: flex;
+      gap: 5px;
+      justify-content: space-between;
+    }
+    .game-control .d-pads button {
+      padding: 10px;
+    }
+    .game-control .buttons {
+      display: flex;
+      align-items: center;
+    }
+    .game-control .buttons .button {
+      border: 1px solid #000;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+    }
+    .game-control .buttons .button.red {
+      background-color: red;
+    }
+    .game-control .buttons .button.blue {
+      background-color: blue;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- TODO: design/implement player controls -->
+  <div class="game-control">
+    <div class="d-pad">
+      <div class="d-pads">
+        <div>&nbsp;</div>
+        <button type="button" onclick="move('up')">UP</button>
+        <div>&nbsp;</div>
+      </div>
+      <div class="d-pads">
+        <button type="button" onclick="move('left')">LEFT</button>
+        <div>&nbsp;</div>
+        <button type="button" onclick="move('right')">RIGHT</button>
+      </div>
+      <div class="d-pads">
+        <div>&nbsp;</div>
+        <button type="button" onclick="move('down')">DOWN</button>
+        <div>&nbsp;</div>
+      </div>
+    </div>
+    <!-- TODO: add button to mark ready -- when game ends, can indicate player is ready -->
+    <div class="buttons">
+      <div class="button red" onclick="action('attack')"></div>
+      <div class="button blue"></div>
+    </div>
+  </div>
+
+  <script>
+    const CLIENT_ID = Date.now();
+    const ws = new WebSocket(`ws://${location.hostname}:8082`);
+
+    const move = (direction) => {
+      ws.send(JSON.stringify({
+        clientId: CLIENT_ID,
+        action: `move=${direction}`,
+      }));
+    };
+
+    const action = (typeOfAction) => {
+      ws.send(JSON.stringify({
+        clientId: CLIENT_ID,
+        action: typeOfAction
+      }));
+    };
+
+    ws.addEventListener('open', (e) => {
+      console.log('[client]: Connected!');
+    });
+
+    // only need game status messages -- when game ended and ability to mark ready
+    // ws.onmessage = (e) => {
+    //   console.log('[client]: FROM-SERVER: ', `${e.data}`);
+    // };
+
+    ws.onclose = (socket, e) => {
+      console.log('[client]: Closed connection.', socket, e);
+    }
+  </script>
+</body>
+</html>
