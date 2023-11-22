@@ -239,7 +239,7 @@ function animate() {
   // enemy jumping
   if (enemy.velocity.y < 0) {
     enemy.switchSprite(CHARACTER_STATE.JUMP, enemy.isFlipped);
-  } else if (player.velocity.y > 0) {
+  } else if (enemy.velocity.y > 0) {
     enemy.switchSprite(CHARACTER_STATE.FALL, enemy.isFlipped);
   }
 
