@@ -295,8 +295,14 @@ function animate() {
   }
 }
 
-let timer = 100;
+let timer;
 let timerId;
+
+function startGame() {
+  timer = 100;
+  animate();
+  decreaseTime();
+}
 
 function decreaseTime() {
   timerId = setInterval(() => {
@@ -309,14 +315,12 @@ function decreaseTime() {
     document.querySelector('#timer').innerHTML = `${timer}`;
 
     // end game based on timer
-    if (timer === 0) {
+    if (timer <= 0) {
+      timer = 0;
       determineWinner({ player, enemy, timerId });
     }
   }, 1000);
 }
-
-animate();
-decreaseTime();
 attachScreenWebSocket();
 
 // #region Events

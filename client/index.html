@@ -47,11 +47,23 @@
       background-color: blue;
       display: none;
     }
+    .game-control .ready {
+      display: flex;
+      align-items: center;
+    }
+    .game-control .ready button {
+      width: 4em;
+      height: 1.5em;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      padding: 0;
+      margin: 0;
+    }
   </style>
 </head>
 <body>
   
-  <!-- TODO: design/implement player controls -->
   <div class="game-control">
     <div class="d-pad">
       <div class="d-pads">
@@ -70,7 +82,11 @@
         <div>&nbsp;</div>
       </div>
     </div>
-    <!-- TODO: add button to mark ready -- when game ends, can indicate player is ready -->
+
+    <div class="ready">
+      <button type="button" onclick="ready()">Start</button>
+    </div>
+    
     <div class="buttons">
       <div class="button red" onclick="action('attack')"></div>
       <div class="button blue"></div>
@@ -78,35 +94,71 @@
   </div>
 
   <script>
-    const CLIENT_ID = Date.now();
-    const ws = new WebSocket(`ws://${location.hostname}:8082`);
+    let ws;
+
+    const myLoadHandler = (evt) => {
+      ws = new WebSocket(`ws://${location.hostname}:8082`);
+
+      ws.addEventListener('open', (evt) => {
+        console.log('[client]: Connected!');
+        ws.send(JSON.stringify({
+          action: 'REG',
+          role: 'Player'
+        }));
+        console.log('[client]: Registering as a Player!');
+      });
+
+      // only need game status messages -- when game ended and ability to mark ready
+      ws.onmessage = (e) => {
+        const message = JSON.parse(e.data);
+        
+        console.log('[client]: FROM-SERVER: ', message);
+      };
+
+      ws.onerror = (socker, evt) => {
+        console.log('[client]: Error', evt);
+      };
+
+      ws.onclose = (socket, evt) => {
+        console.log('[client]: Closed connection.', socket, evt);
+        if (confirm('Sorry, server not available.  Try again?')) {
+          location.reload();
+        }
+      }
+    }
+
+    const myUnloadHandler = (evt) => {
+      if (!ws) { return; }
+      trySendMessage('close');
+      ws.close();
+    }
+
+    if ("onpagehide" in window) {
+      window.addEventListener("pageshow", myLoadHandler, false);
+      window.addEventListener("pagehide", myUnloadHandler, false);
+    } else {
+      window.addEventListener("load", myLoadHandler, false);
+      window.addEventListener("unload", myUnloadHandler, false);
+    }
+
+    const trySendMessage = (message) => {
+      if (!ws || !message) { return; }
+      ws.send(JSON.stringify({
+        action: message
+      }));
+    };
 
     const move = (direction) => {
-      ws.send(JSON.stringify({
-        clientId: CLIENT_ID,
-        action: `move=${direction}`,
-      }));
+      trySendMessage(`move=${direction}`);
     };
 
     const action = (typeOfAction) => {
-      ws.send(JSON.stringify({
-        clientId: CLIENT_ID,
-        action: typeOfAction
-      }));
+      trySendMessage(typeOfAction);
     };
 
-    ws.addEventListener('open', (e) => {
-      console.log('[client]: Connected!');
-    });
-
-    // only need game status messages -- when game ended and ability to mark ready
-    // ws.onmessage = (e) => {
-    //   console.log('[client]: FROM-SERVER: ', `${e.data}`);
-    // };
-
-    ws.onclose = (socket, e) => {
-      console.log('[client]: Closed connection.', socket, e);
-    }
+    const ready = () => {
+      trySendMessage('ready');
+    };
   </script>
 </body>
 </html>

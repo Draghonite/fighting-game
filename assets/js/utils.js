@@ -25,6 +25,7 @@ const HEALTH_HIT_AMOUNT = {
 };
 
 const GAME_STATE = {
+  INITIAL: 'Ready Up!',
   IDLE: 'idle',
   GAME_STARTING: 'Starting...',
   RUNNING: 'running',
@@ -43,24 +44,24 @@ function routeActionEvent(request) {
       right: 'ArrowRight',
       left: 'ArrowLeft',
       up: 'ArrowUp',
-      attack: ' '
+      attack: 'ArrowDown'
     }
   };
   let action = request.action.split('=');
   console.log('[screen.routeActionEvent]: ', request, action);
 
   if (action[1]) {
-    let event = { key: EVENT_MAP[request.clientId][action[1]] };
+    let event = { key: EVENT_MAP[request.ID][action[1]] };
     startAction(event);
     setTimeout(() => {
       stopAction(event);
-    }, 500);
+    }, 250);
   } else {
-    let event = { key: EVENT_MAP[request.clientId][action[0]] };
+    let event = { key: EVENT_MAP[request.ID][action[0]] };
     startAction(event);
     setTimeout(() => {
       stopAction(event);
-    }, 500);
+    }, 250);
   }
 }
 
@@ -68,30 +69,50 @@ function attachScreenWebSocket() {
   const ws = new WebSocket('ws://localhost:8082');
 
   ws.addEventListener('open', (client) => {
-    
+    console.log('[screen]: Connected!');
+    ws.send(JSON.stringify({
+      action: 'REG',
+      role: 'Screen'
+    }));
+    console.log('[screen]: Registering as a Screen!');
   });
 
   ws.onmessage = (e) => {
     const message = JSON.parse(e.data); // compromising on performance over resilience (error-handling)
     if (!message) { return; }
 
+    console.log('[screen]', message);
+
     // ensure that player 1 and player 2 are setup -- should be more robust
-    if (!PLAYER.ONE && PLAYER.ONE !== message.clientId) {
-      PLAYER.ONE = message.clientId;
-      console.log('[screen]: Player 1 connected!');
-    } else if (!PLAYER.TWO && PLAYER.TWO !== message.clientId && PLAYER.ONE !== message.clientId) {
-      PLAYER.TWO = message.clientId;
-      console.log('[screen]: Player 2 connected!');
+    if (message.action === 'REG_ACK' && message.role === 'Player') {
+      if (!PLAYER.ONE && PLAYER.ONE !== message.ID) {
+        PLAYER.ONE = message.ID;
+        console.log('[screen]: Player 1 connected!');
+      } else if (!PLAYER.TWO && PLAYER.TWO !== message.ID && PLAYER.ONE !== message.ID) {
+        PLAYER.TWO = message.ID;
+        console.log('[screen]: Player 2 connected!');
+      }
+    }
+
+    // handle player ready
+    if (message.action === 'ready') {
+      if (PLAYER.ONE === message.ID) {
+        document.querySelector('#player1Ready').click();
+      } else if (PLAYER.TWO === message.ID) {
+        document.querySelector('#player2Ready').click();
+      }
     }
 
     console.log('[screen]: FROM-SERVER: ', message, PLAYER);
 
-    routeActionEvent(message);
+    if (PLAYER.ONE && PLAYER.TWO) {
+      routeActionEvent(message);
+    }
   };
 
   ws.onclose = (socket, e) => {
     // TODO: clean up clients list -- same client should be able to reload and reconnect
-    console.log('[screen]: A player left.');
+    console.log('[screen]: Screen disconnected.');
     // TODO: what happens if player exits mid-game -- if 1 player left, automatic winner?
   }
 }
@@ -109,7 +130,11 @@ function setGameState(state, winner) {
       } else {
         gameStateElement.innerHTML = 'Fight!';
       }
+      if (timer === 0) {
+        gameResultsElement.style.visibility = 'hidden';
+      }
       gameOutcomeElement.innerHTML = timer;
+      gameOutcomeElement.style.visibility = 'visible';
       gameResultsElement.style.visibility = 'visible';
       break;
     case GAME_STATE.GAME_OVER:
@@ -117,6 +142,16 @@ function setGameState(state, winner) {
       gameOutcomeElement.innerHTML = winner;
       gameResultsElement.style.visibility = 'visible';
       nextGameElement.style.visibility = 'visible';
+      break;
+    case GAME_STATE.INITIAL:
+      gameStateElement.innerHTML = GAME_STATE.INITIAL;
+      gameStateElement.style.visibility = 'visible';
+      gameOutcomeElement.style.visibility = 'hidden';
+      gameResultsElement.style.visibility = 'hidden';
+      nextGameElement.style.visibility = 'visible';
+      break;
+    case GAME_STATE.RUNNING:
+      gameResultsElement.visibility = 'hidden';
       break;
   }
 }
@@ -170,8 +205,10 @@ function setPlayerReady(ele, playerNumber) {
       timer--;
       setGameState(GAME_STATE.GAME_STARTING);
       if (timer <= 0) {
-        location.reload();
+        startGame();
       }
     }, 1000);
   }
 }
+
+setGameState(GAME_STATE.INITIAL);
